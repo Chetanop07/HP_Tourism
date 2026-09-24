@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HP Tourism — Management & Booking Administration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+  <!-- ─── Login Screen ─────────────────────────────────────────────── -->
+  <div class="login-page" id="loginPage">
+    <div class="login-box">
+      <div class="login-logo">HP Tourism</div>
+      <div class="login-subtitle">Admin Control Portal</div>
+      <h2 class="login-title">Welcome Back</h2>
+      <p class="login-hint">Enter your administrator access key</p>
+
+      <form class="login-form" id="loginForm">
+        <div class="form-field">
+          <label for="adminPassword">Password</label>
+          <input
+            type="password"
+            id="adminPassword"
+            placeholder="Enter password (default: admin@HP2024)"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+        <button type="submit" class="login-btn" id="loginSubmitBtn">Authenticate & Enter →</button>
+        <div class="login-error" id="loginError" role="alert"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ─── Admin Dashboard ──────────────────────────────────────────── -->
+  <div class="admin-layout" id="adminDashboard" style="display: none;">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">HP Tourism</div>
+        <div class="sidebar-role">Master Admin Console</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Management</div>
+        <div class="nav-item active" data-section="overview" id="nav-overview">
+          <span class="nav-icon">📊</span>
+          <span>Overview</span>
+        </div>
+        <div class="nav-item" data-section="bookings" id="nav-bookings">
+          <span class="nav-icon">📋</span>
+          <span>Bookings</span>
+          <span class="nav-badge" id="pendingBadge" style="display:none;">0</span>
+        </div>
+
+        <div class="nav-section-label">Analytics & Config</div>
+        <div class="nav-item" data-section="analytics" id="nav-analytics">
+          <span class="nav-icon">📈</span>
+          <span>Analytics</span>
+        </div>
+        <div class="nav-item" data-section="settings" id="nav-settings">
+          <span class="nav-icon">⚙️</span>
+          <span>Notifications</span>
+        </div>
+
+        <div class="nav-section-label">Quick Links</div>
+        <a href="index.html" class="nav-item" target="_blank" rel="noopener">
+          <span class="nav-icon">🌐</span>
+          <span>View Live Site ↗</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="ntfy-status">
+          <div class="ntfy-dot" id="ntfyStatusDot"></div>
+          <span id="ntfyStatusLabel">Notifications Active</span>
+        </div>
+        <button class="sidebar-logout" id="logoutBtn">
+          <span>🚪</span>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <!-- Topbar -->
+      <div class="admin-topbar">
+        <div>
+          <h1 class="admin-page-title">Dashboard Overview</h1>
+          <div class="admin-page-subtitle">Real-time trip booking & inquiry stream</div>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="topbar-search">
+            <input type="text" id="adminSearch" placeholder="Search by name, ID, destination..." />
+          </div>
+          <button class="btn-notify-setup" id="openNotifPanel">
+            <span>📱</span>
+            <span>Alert Settings</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section: Overview -->
+      <section class="admin-section" id="overview">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Bookings</span>
+              <div class="stat-icon">📑</div>
+            </div>
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-change">All recorded trips</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Pending Inquiries</span>
+              <div class="stat-icon">⏳</div>
+            </div>
+            <div class="stat-value" id="statPending">0</div>
+            <div class="stat-change down">Awaiting confirmation</div>
+          </div>
+
+          <div class="stat-card green">
+            <div class="stat-header">
+              <span class="stat-label">Confirmed Trips</span>
+              <div class="stat-icon">✅</div>
+            </div>
+            <div class="stat-value" id="statConfirmed">0</div>
+            <div class="stat-change">Active bookings</div>
+          </div>
+
+          <div class="stat-card blue">
+            <div class="stat-header">
+              <span class="stat-label">Estimated Revenue</span>
+              <div class="stat-icon">💳</div>
+            </div>
+            <div class="stat-value" id="statRevenue">₹0</div>
+            <div class="stat-change">Excluding cancelled</div>
+          </div>
+        </div>
+
+        <!-- Charts & Activity Row -->
+        <div class="dashboard-row">
+          <div class="chart-card">
+            <div class="chart-title">Booking Volume (Last 6 Months)</div>
+            <div class="bar-chart" id="bookingsChart"></div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">Recent Activity Feed</div>
+            <div class="activity-list" id="activityFeed"></div>
+          </div>
+        </div>
+
+        <!-- Bookings Table inside Overview -->
+        <div class="table-section">
+          <div class="table-header">
+            <div class="table-title">Recent Reservations</div>
+            <div class="table-actions">
+              <select class="filter-select" id="statusFilter" aria-label="Filter status">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button class="btn-export" id="exportBtn">
+                <span>📥</span>
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Customer</th>
+                  <th>Destination</th>
+                  <th>Check-In</th>
+                  <th>Check-Out</th>
+                  <th>Guests</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookingsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Bookings Dedicated Tab -->
+      <section class="admin-section" id="bookings" style="display: none;">
+        <div class="table-section">
+          <div class="table-header">
+            <div class="table-title">All Customer Reservations</div>
+            <div class="table-actions">
+              <button class="btn-export" onclick="document.getElementById('exportBtn').click()">
+                <span>📥</span>
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+          <p style="padding:1rem 1.5rem;color:var(--admin-text-muted);font-size:0.85rem;">
+            Click on any row in the overview or search above to view detailed customer request information, room types, and custom notes.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section: Analytics -->
+      <section class="admin-section" id="analytics" style="display: none;">
+        <div class="chart-card" style="margin-bottom:1.5rem;">
+          <div class="chart-title">Trip Breakdown by Destination</div>
+          <p style="color:var(--admin-text-muted);font-size:0.85rem;margin-bottom:1rem;">
+            Distribution of traveller inquiries across Himachal Pradesh destinations.
+          </p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+            <div style="background:var(--admin-surface2);padding:1rem;border-radius:8px;border:1px solid var(--admin-border);">
+              <div style="color:var(--admin-accent);font-size:1.4rem;font-weight:700;">Shimla</div>
+              <div style="color:var(--admin-text-muted);font-size:0.8rem;margin-top:0.2rem;">Top Family Pick</div>
+            </div>
+            <div style="background:var(--admin-surface2);padding:1rem;border-radius:8px;border:1px solid var(--admin-border);">
+              <div style="color:var(--admin-accent);font-size:1.4rem;font-weight:700;">Manali</div>
+              <div style="color:var(--admin-text-muted);font-size:0.8rem;margin-top:0.2rem;">Most Popular Adventure</div>
+            </div>
+            <div style="background:var(--admin-surface2);padding:1rem;border-radius:8px;border:1px solid var(--admin-border);">
+              <div style="color:var(--admin-accent);font-size:1.4rem;font-weight:700;">Spiti Valley</div>
+              <div style="color:var(--admin-text-muted);font-size:0.8rem;margin-top:0.2rem;">High Value Expeditions</div>
+            </div>
+            <div style="background:var(--admin-surface2);padding:1rem;border-radius:8px;border:1px solid var(--admin-border);">
+              <div style="color:var(--admin-accent);font-size:1.4rem;font-weight:700;">Dharamshala</div>
+              <div style="color:var(--admin-text-muted);font-size:0.8rem;margin-top:0.2rem;">Cultural & Retreats</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Settings / Notifications -->
+      <section class="admin-section" id="settings" style="display: none;">
+        <div class="chart-card">
+          <div class="chart-title">Real-Time Mobile Notifications (ntfy.sh)</div>
+          <p style="color:var(--admin-text-muted);font-size:0.85rem;line-height:1.7;margin-bottom:1.5rem;">
+            Receive instant push notifications on your phone whenever a customer books a trip. Subscribe to your private topic using the free ntfy mobile app.
+          </p>
+          <div style="display:flex;gap:1rem;align-items:center;">
+            <button class="login-btn" style="max-width:240px;" onclick="document.getElementById('openNotifPanel').click()">
+              Configure Notification Channel
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ─── Booking Detail Modal ──────────────────────────────────────── -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="booking-modal" id="bookingModal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalTitle">Trip Booking</div>
+          <div style="font-family:monospace;color:var(--admin-accent);font-size:0.85rem;margin-top:0.2rem;" id="modalBookingId">HP-00000000</div>
+        </div>
+        <button id="closeModal" style="background:none;color:var(--admin-text-muted);font-size:1.5rem;cursor:pointer;">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding:1.5rem 2rem;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;font-size:0.85rem;margin-bottom:1.5rem;">
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Traveller Name</span><strong id="mfName">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Email</span><strong id="mfEmail">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Phone</span><strong id="mfPhone">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Location</span><strong id="mfCity">—</strong>, <span id="mfState">—</span></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Destination</span><strong id="mfDest">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Package Plan</span><strong id="mfPackage">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Check-In</span><strong id="mfCheckIn">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Check-Out</span><strong id="mfCheckOut">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Guests</span><strong id="mfGuests">—</strong> (<span id="mfNights">—</span> nights)</div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Room Type</span><strong id="mfRoomType">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Status</span><strong id="mfStatus">—</strong></div>
+          <div><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Total Amount</span><strong id="mfTotal" style="color:var(--admin-accent);">—</strong></div>
+          <div style="grid-column:span 2;"><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Created Date</span><span id="mfCreatedAt">—</span></div>
+          <div style="grid-column:span 2;"><span style="color:var(--admin-text-muted);font-size:0.75rem;display:block;text-transform:uppercase;">Special Requests</span><p id="mfRequests" style="margin-top:0.3rem;background:var(--admin-surface2);padding:0.7rem;border-radius:6px;font-style:italic;">—</p></div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;border-top:1px solid var(--admin-border);padding-top:1rem;">
+          <button class="btn-view" id="modalPrintBtn">🖨️ Print Voucher</button>
+          <button class="btn-delete" id="modalCancelBtn">Cancel Booking</button>
+          <button class="btn-confirm" id="modalConfirmBtn">✓ Confirm Booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Notification Config Slide Panel ──────────────────────────── -->
+  <div id="notifPanel" style="position:fixed;top:0;right:0;bottom:0;width:380px;background:var(--admin-surface);border-left:1px solid var(--admin-border);padding:2rem;z-index:10000;transform:translateX(100%);transition:transform 0.3s;box-shadow:-10px 0 30px rgba(0,0,0,0.5);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="font-family:var(--font-display);color:var(--admin-accent);font-size:1.4rem;">Push Alerts</h3>
+      <button id="closeNotifPanel" style="background:none;color:var(--admin-text-muted);font-size:1.4rem;cursor:pointer;">✕</button>
+    </div>
+
+    <p style="font-size:0.8rem;color:var(--admin-text-muted);line-height:1.6;margin-bottom:1.5rem;">
+      Enter your topic name below. Install the <strong>ntfy</strong> app on your Android or iPhone and subscribe to this topic to receive live alerts.
+    </p>
+
+    <div style="margin-bottom:1.2rem;">
+      <label style="display:block;font-size:0.75rem;text-transform:uppercase;color:var(--admin-text-muted);font-weight:600;margin-bottom:0.4rem;">Topic Name</label>
+      <input type="text" id="ntfyTopic" value="hp-tourism-bookings" style="width:100%;padding:0.75rem;background:var(--admin-bg);border:1px solid var(--admin-border);border-radius:8px;color:var(--admin-text);outline:none;font-size:0.85rem;" />
+    </div>
+
+    <div style="margin-bottom:1.5rem;font-size:0.75rem;color:var(--admin-text-muted);">
+      Channel URL: <br/>
+      <code id="ntfyLink" style="color:var(--admin-accent);word-break:break-all;">https://ntfy.sh/hp-tourism-bookings</code>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <button class="btn-confirm" id="saveNtfyBtn" style="padding:0.8rem;text-align:center;">Save Channel Config</button>
+      <button class="btn-view" id="testNtfyBtn" style="padding:0.8rem;text-align:center;">📱 Send Test Notification</button>
+    </div>
+  </div>
+
+  <style>
+    #notifPanel.open { transform: translateX(0) !important; }
+  </style>
+
+  <!-- Admin Toast -->
+  <div id="adminToast" class="admin-toast" style="position:fixed;bottom:2rem;right:2rem;background:var(--admin-surface2);border:1px solid var(--admin-border);padding:0.9rem 1.4rem;border-radius:10px;font-size:0.85rem;color:var(--admin-text);transform:translateY(150%);transition:transform 0.3s;z-index:10001;box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+    <span class="toast-text"></span>
+  </div>
+  <style>
+    #adminToast.show { transform: translateY(0) !important; }
+    #adminToast.success { border-color: var(--admin-green); color: #86efac; }
+    #adminToast.error { border-color: var(--admin-red); color: #fca5a5; }
+  </style>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
