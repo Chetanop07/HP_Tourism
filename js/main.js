@@ -312,3 +312,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // Dark mode toggle button
   document.getElementById('darkToggle')?.addEventListener('click', toggleDarkMode);
 });
+// Mobile hamburger menu
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+
+if (hamburger && mobileMenu) {
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+
+    hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    hamburger.setAttribute(
+      'aria-label',
+      isOpen ? 'Close mobile menu' : 'Open mobile menu'
+    );
+
+    hamburger.classList.toggle('active', isOpen);
+  });
+
+  // Close menu after selecting a navigation item
+  mobileMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      hamburger.classList.remove('active');
+      hamburger.setAttribute('aria-expanded', 'false');
+      hamburger.setAttribute('aria-label', 'Open mobile menu');
+    });
+  });
+}
